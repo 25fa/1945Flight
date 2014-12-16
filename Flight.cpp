@@ -20,19 +20,27 @@ Flight::Flight() {
 	Sprite* bornSprite = NULL, playerSprite = NULL;*/
 
 	//	this._power = FLANKER.PLAYER[player].POWER;
+	this->Life = 3;
+	this->setAnchorPoint(Point(0.5, 0.5));
+	//init life
+	this->initWithSpriteFrameName("ship_1_01.png");
+	this->setScale(1.6);
 
-		this->setAnchorPoint(Point(0.5, 0.5));
-		//init life
-		this->initWithSpriteFrameName("ship_1_01.png");
-		this->setScale(1.2);
+	this->setPosition(160, 0);
+	this->appearPosition = Point(160, 0);
+	size = Director::getInstance()->getWinSize();
+	GameController::getInstance()->g_sharedGameLayer->setState(STATE_PLAYING);
 
-		this->setPosition(160, 0);
-		this->appearPosition = Point(160, 0);
+	this->born();
 
-		this->scheduleUpdate();
-		this->schedule(schedule_selector(Flight::move), 0);
-		//this->initBornSprite();
-		this->born();
+	this->scheduleUpdate();
+	this->schedule(schedule_selector(Flight::move), 0);
+	//this->initBornSprite();
+	lb = Label::create("None", "arial", 50);
+	lb->setAnchorPoint(ccp(0.5, 0.5));
+	lb->setPosition(Point(100, 100));
+	this->addChild(lb, 10);
+
 }
 
 Flight::~Flight() {
@@ -92,77 +100,63 @@ void Flight::destroy(){
 }
 
 
-void Flight::update(int dt) {
-	/*if(this->_alive && GameController::getInstance()->g_sharedGameLayer->getState() == STATE_PLAYING) {
+void Flight::update(float dt) {
+	//lb->setString("update");
+	if(this->_alive && GameController::getInstance()->g_sharedGameLayer->getState() == STATE_PLAYING)
+	{
 		Point pos = this->getPosition();
 
 		if (this->op) {
 			this->initWithSpriteFrameName("ship_1_01.png");
 			this->setAnchorPoint(Point(0.5,0.5));
 		}
-		if(FLANKER.PLAYER[this._player].LIFE == 0){
+		if(this->Life == 0){
 			this->setVisible(false);
 		}
 
-		if(this->isAnimate){
-			if (FLANKER.KEYS[this.key_UP] && pos.y <= winSize.height) {
+
+
+		if(this->isAnimate)
+		{
+			if (this->key_UP && pos.y <= size.height) {
 				this->op = true;
 				this->initWithSpriteFrameName("ship_1_07.png");
 				this->setAnchorPoint(Point(0.5,0.7));
 				if(pos.y < 480 - this->getContentSize().height / 2)
-					pos.y += dt * this->speed;
+					pos.y += deltay;
+				double temp = deltay;
+				string str = std::to_string(temp);
+				lb->setString(str);
 			}
-			if (FLANKER.KEYS[this.key_DOWN] && pos.y >= 0) {
+			if (this->key_DOWN && pos.y >= 0) {
 				this->op = true;
 				this->initWithSpriteFrameName("ship_1_15.png");
 				if(pos.y > this->getContentSize().height / 2 +7)
-					pos.y -= dt * this->speed;
+					pos.y -= deltay;
 			}
-			if (FLANKER.KEYS[this.key_LEFT] && pos.x >= 0) {
+			if (this->key_LEFT && pos.x >= 0) {
 				this->op = true;
 				this->initWithSpriteFrameName("ship_1_06.png");
 				if(pos.x > this->getContentSize().width / 2 +6)
-					pos.x -= dt * this->speed;
+					pos.x -= deltax;
 			}
-			if (FLANKER.KEYS[this.key_DOWN] && FLANKER.KEYS[this.key_LEFT]) {
+			if (this->key_DOWN && this->key_LEFT) {
 				this->initWithSpriteFrameName("ship_1_04.png");
 			}
-			if (FLANKER.KEYS[this.key_RIGHT] && pos.x <= winSize.width) {
+			if (this->key_RIGHT && pos.x <= size.width) {
 				this->op = true;
 				this->initWithSpriteFrameName("ship_1_20.png");
 				if(pos.x <320 -  this->getContentSize().width / 2 - 6)
-					pos.x += dt * this->speed;
+					pos.x += deltax;
 			}
-			if (FLANKER.KEYS[this.key_DOWN] && FLANKER.KEYS[this.key_RIGHT]) {
+			if (this->key_DOWN && this->key_RIGHT) {
 				this->initWithSpriteFrameName("ship_1_18.png");
 			}
-			if (FLANKER.KEYS[this.key_SHOOT]) {
-				this->lethal++;
-
-				if(this->lethal > 30) {
-					this->isLethal = true;
-				}
-
-				if(!this->isLethal) {
-					this->shoot();
-				}
-				if(this->isLethal) {
-					if(FLANKER.PLAYER[this._player].EXP / 6 >= 1) {
-						FLANKER.PLAYER[this._player].EXP = FLANKER.PLAYER[this._player].EXP - 6;
-						this->lethalShoot();
-
-						this->lethal = 0;
-						this->isLethal = false;
-					} else {
-						this->isLethal = false;
-						this->shoot();
-					}
-				}
-			}
-			if (!FLANKER.KEYS[this.key_SHOOT]) {
-				this->lethal = 0;
+			if (this->key_SHOOT) {
+				this->shoot();
 			}
 		}
+		/*
 		if (FLANKER.KEYS[this.key_BOOM]) {
 			if(FLANKER.PLAYER[this._player].BOOMB > 0) {
 				if(this->isAnimate){
@@ -211,18 +205,21 @@ void Flight::update(int dt) {
 					FLANKER.PLAYER[this._player].BOOMB--;
 				}
 			}
-		}
-			this.setPosition(pos);
-	}*/
+		}*/
+			this->setPosition(pos);
+	}
 }
 
 
-void Flight::setDelta(int dx, int dy, int direction) {
+void Flight::setDelta(double dx, double dy) {
 	this->dx = dx;
 	this->dy = dy;
-	this->direction = direction;
 }
 
+void Flight::setDeltaXY(double dx, double dy) {
+	this->deltax = dx;
+	this->deltay = dy;
+}
 void Flight::move(float dt)
 {
 	if(this->_alive &&GameController::getInstance()->g_sharedGameLayer->getState() == STATE_PLAYING)
@@ -287,7 +284,7 @@ void Flight::move(float dt)
 	}
 }
 
-/*void Flight::shoot()
+void Flight::shoot()
 {
 	if(this->dt % 7 == 0)
 	{
@@ -295,17 +292,16 @@ void Flight::move(float dt)
 		Point p = this->getPosition();
 		Size cs = this->getContentSize();
 
-		//수정필요 var bullet = NormalBullet.getOrCreateBullet("ship1_b_" + this._power + ".png", p.x, p.y + 3 + cs.height * 0.3, FLANKER.BULLET_SPEED.SHIP);
+		//NormalBullet* bullet = new NormalBullet("ship1_b_" + std::to_string(this->_power) + ".png", p.x, p.y + 3 + cs.height * 0.3, 1, 0);
 
-		if(this->_player == 0) {
+		/*if(this->_player == 0) {
 			//수정필요 FLANKER.CONTAINER.PLAYER1_BULLETS.push(bullet);
-		} else if(this->_player == 1) {
-			//수정필요 FLANKER.CONTAINER.PLAYER2_BULLETS.push(bullet);
-		}
+			printf("");
+		}*/
 		CocosDenshion::SimpleAudioEngine::sharedEngine()->playEffect("sound/sfx/sfx_039.mp3");
 	}
 	this->dt++;
-}*/
+}
 
 /*void Flight::lethalShoot()
 {
